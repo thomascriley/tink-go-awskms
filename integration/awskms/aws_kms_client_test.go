@@ -29,7 +29,7 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/kms"
 	"github.com/tink-crypto/tink-go/v2/core/registry"
 
-	"github.com/tink-crypto/tink-go-awskms/v2/integration/awskms/internal/fakeawskms"
+	"github.com/scorpionknifes/tink-go-awskms-v2/v2/integration/awskms/internal/fakeawskms"
 )
 
 func TestNewClientWithOptions_URIPrefix(t *testing.T) {

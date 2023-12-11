@@ -29,7 +29,7 @@ import (
 	"github.com/tink-crypto/tink-go/v2/aead"
 	"github.com/tink-crypto/tink-go/v2/tink"
 
-	"github.com/tink-crypto/tink-go-awskms/v2/integration/awskms"
+	"github.com/scorpionknifes/tink-go-awskms-v2/v2/integration/awskms"
 )
 
 const (
