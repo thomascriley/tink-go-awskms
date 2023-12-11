@@ -18,12 +18,14 @@ package awskms_test
 
 import (
 	"bytes"
+	"context"
+	"flag"
 	"os"
 	"path/filepath"
 	"testing"
 
-	"flag"
 	// context is used to cancel outstanding requests
+
 	"github.com/tink-crypto/tink-go/v2/aead"
 	"github.com/tink-crypto/tink-go/v2/tink"
 
@@ -38,8 +40,8 @@ const (
 )
 
 var (
-	credCSVFile = "tink_go_awskms/testdata/aws/credentials.csv"
-	credINIFile = "tink_go_awskms/testdata/aws/credentials.ini"
+	credCSVFile = "tink_go_awskms_v2/testdata/aws/credentials.csv"
+	credINIFile = "tink_go_awskms_v2/testdata/aws/credentials.ini"
 )
 
 func init() {
@@ -53,7 +55,7 @@ func TestNewClientWithCredentialsGetAEADEncryptDecrypt(t *testing.T) {
 	if !ok {
 		t.Skip("TEST_SRCDIR not set")
 	}
-	client, err := awskms.NewClientWithOptions(keyURI, awskms.WithCredentialPath(filepath.Join(srcDir, credCSVFile)))
+	client, err := awskms.NewClientWithOptions(context.Background(), keyURI, awskms.WithCredentialPath(filepath.Join(srcDir, credCSVFile)))
 	if err != nil {
 		t.Fatalf("error setting up AWS client: %v", err)
 	}
@@ -87,7 +89,7 @@ func TestEmptyAssociatedDataEncryptDecrypt(t *testing.T) {
 	if !ok {
 		t.Skip("TEST_SRCDIR not set")
 	}
-	client, err := awskms.NewClientWithOptions(keyURI, awskms.WithCredentialPath(filepath.Join(srcDir, credCSVFile)))
+	client, err := awskms.NewClientWithOptions(context.Background(), keyURI, awskms.WithCredentialPath(filepath.Join(srcDir, credCSVFile)))
 	if err != nil {
 		t.Fatalf("error setting up AWS client: %v", err)
 	}
@@ -124,7 +126,7 @@ func TestKeyCommitment(t *testing.T) {
 		t.Skip("TEST_SRCDIR not set")
 	}
 
-	client, err := awskms.NewClientWithOptions(keyPrefix, awskms.WithCredentialPath(filepath.Join(srcDir, credCSVFile)))
+	client, err := awskms.NewClientWithOptions(context.Background(), keyPrefix, awskms.WithCredentialPath(filepath.Join(srcDir, credCSVFile)))
 	if err != nil {
 		t.Fatalf("error setting up AWS client: %v", err)
 	}
@@ -171,7 +173,7 @@ func TestKMSEnvelopeAEADEncryptAndDecrypt(t *testing.T) {
 	for _, credFile := range []string{credCSVFile, credINIFile} {
 		credPath := filepath.Join(srcDir, credFile)
 
-		client, err := awskms.NewClientWithOptions(keyURI, awskms.WithCredentialPath(credPath))
+		client, err := awskms.NewClientWithOptions(context.Background(), keyURI, awskms.WithCredentialPath(credPath))
 		if err != nil {
 			t.Fatalf("awskms.NewClientWithOptions() err = %q, want nil", err)
 		}

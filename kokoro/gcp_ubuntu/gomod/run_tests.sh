@@ -30,7 +30,7 @@ set -eEuo pipefail
 RUN_COMMAND_ARGS=()
 if [[ -n "${KOKORO_ARTIFACTS_DIR:-}" ]]; then
   readonly TINK_BASE_DIR="$(echo "${KOKORO_ARTIFACTS_DIR}"/git*)"
-  cd "${TINK_BASE_DIR}/tink_go_awskms"
+  cd "${TINK_BASE_DIR}/tink_go_awskms_v2"
   source "./kokoro/testutils/go_test_container_images.sh"
   CONTAINER_IMAGE="${TINK_GO_BASE_IMAGE}"
   RUN_COMMAND_ARGS+=( -k "${TINK_GCR_SERVICE_KEY}" )

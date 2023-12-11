@@ -42,7 +42,7 @@ fi
 
 if [[ "${IS_KOKORO}" == "true" ]] ; then
   readonly TINK_BASE_DIR="$(echo "${KOKORO_ARTIFACTS_DIR}"/git*)"
-  cd "${TINK_BASE_DIR}/tink_go_awskms"
+  cd "${TINK_BASE_DIR}/tink_go_awskms_v2"
 fi
 
 GITHUB_RELEASE_UTIL_OPTS=()

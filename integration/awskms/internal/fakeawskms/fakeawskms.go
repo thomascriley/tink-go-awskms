@@ -19,25 +19,30 @@ package fakeawskms
 
 import (
 	"bytes"
+	"context"
 	"errors"
 	"fmt"
 	"sort"
 
-	"github.com/aws/aws-sdk-go/service/kms"
-	"github.com/aws/aws-sdk-go/service/kms/kmsiface"
+	"github.com/aws/aws-sdk-go-v2/service/kms"
 	"github.com/tink-crypto/tink-go/v2/aead"
 	"github.com/tink-crypto/tink-go/v2/keyset"
 	"github.com/tink-crypto/tink-go/v2/tink"
 )
 
+type KMSAPI interface {
+	Decrypt(ctx context.Context, params *kms.DecryptInput, optFns ...func(*kms.Options)) (*kms.DecryptOutput, error)
+	Encrypt(ctx context.Context, params *kms.EncryptInput, optFns ...func(*kms.Options)) (*kms.EncryptOutput, error)
+}
+
 type fakeAWSKMS struct {
-	kmsiface.KMSAPI
+	KMSAPI
 	aeads  map[string]tink.AEAD
 	keyIDs []string
 }
 
 // serializeContext serializes the context map in a canonical way into a byte array.
-func serializeContext(context map[string]*string) []byte {
+func serializeContext(context map[string]string) []byte {
 	names := make([]string, 0, len(context))
 	for name := range context {
 		names = append(names, name)
@@ -49,14 +54,14 @@ func serializeContext(context map[string]*string) []byte {
 		if i > 0 {
 			b.WriteString(",")
 		}
-		fmt.Fprintf(b, "%q:%q", name, *context[name])
+		fmt.Fprintf(b, "%q:%q", name, context[name])
 	}
 	b.WriteString("}")
 	return b.Bytes()
 }
 
 // New returns a new fake AWS KMS API.
-func New(validKeyIDs []string) (kmsiface.KMSAPI, error) {
+func New(validKeyIDs []string) (KMSAPI, error) {
 	aeads := make(map[string]tink.AEAD)
 	for _, keyID := range validKeyIDs {
 		handle, err := keyset.NewHandle(aead.AES256GCMKeyTemplate())
@@ -75,10 +80,10 @@ func New(validKeyIDs []string) (kmsiface.KMSAPI, error) {
 	}, nil
 }
 
-func (f *fakeAWSKMS) Encrypt(request *kms.EncryptInput) (*kms.EncryptOutput, error) {
+func (f *fakeAWSKMS) Encrypt(ctx context.Context, request *kms.EncryptInput, optFns ...func(*kms.Options)) (*kms.EncryptOutput, error) {
 	a, ok := f.aeads[*request.KeyId]
 	if !ok {
-		return nil, fmt.Errorf("Unknown keyID: %q not in %q", *request.KeyId, f.keyIDs)
+		return nil, fmt.Errorf("unknown keyID: %q not in %q", *request.KeyId, f.keyIDs)
 	}
 	serializedContext := serializeContext(request.EncryptionContext)
 	ciphertext, err := a.Encrypt(request.Plaintext, serializedContext)
@@ -91,16 +96,16 @@ func (f *fakeAWSKMS) Encrypt(request *kms.EncryptInput) (*kms.EncryptOutput, err
 	}, nil
 }
 
-func (f *fakeAWSKMS) Decrypt(request *kms.DecryptInput) (*kms.DecryptOutput, error) {
+func (f *fakeAWSKMS) Decrypt(ctx context.Context, request *kms.DecryptInput, optFns ...func(*kms.Options)) (*kms.DecryptOutput, error) {
 	serializedContext := serializeContext(request.EncryptionContext)
 	if request.KeyId != nil {
 		a, ok := f.aeads[*request.KeyId]
 		if !ok {
-			return nil, fmt.Errorf("Unknown keyID: %q not in %q", *request.KeyId, f.keyIDs)
+			return nil, fmt.Errorf("unknown keyID: %q not in %q", *request.KeyId, f.keyIDs)
 		}
 		plaintext, err := a.Decrypt(request.CiphertextBlob, serializedContext)
 		if err != nil {
-			return nil, fmt.Errorf("Decryption with keyID %q failed", *request.KeyId)
+			return nil, fmt.Errorf("decryption with keyID %q failed", *request.KeyId)
 		}
 		return &kms.DecryptOutput{
 			Plaintext: plaintext,

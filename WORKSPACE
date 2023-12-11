@@ -1,4 +1,4 @@
-workspace(name = "tink_go_awskms")
+workspace(name = "tink_go_awskms_v2")
 
 load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive", "http_file")
 
@@ -44,10 +44,10 @@ go_repository(
 
 load("@io_bazel_rules_go//go:deps.bzl", "go_register_toolchains", "go_rules_dependencies")
 
-load("//:deps.bzl", "tink_go_awskms_dependencies")
+load("//:deps.bzl", "tink_go_awskms_v2_dependencies")
 
-# gazelle:repository_macro deps.bzl%tink_go_awskms_dependencies
-tink_go_awskms_dependencies()
+# gazelle:repository_macro deps.bzl%tink_go_awskms_v2_dependencies
+tink_go_awskms_v2_dependencies()
 
 go_rules_dependencies()
 

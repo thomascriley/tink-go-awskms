@@ -18,7 +18,7 @@ set -euo pipefail
 
 if [[ -n "${KOKORO_ROOT:-}" ]]; then
   readonly TINK_BASE_DIR="$(echo "${KOKORO_ARTIFACTS_DIR}"/git*)"
-  cd "${TINK_BASE_DIR}/tink_go_awskms"
+  cd "${TINK_BASE_DIR}/tink_go_awskms_v2"
 fi
 
 # Sourcing required to update callers environment.

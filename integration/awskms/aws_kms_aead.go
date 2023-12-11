@@ -18,11 +18,11 @@
 package awskms
 
 import (
+	"context"
 	"encoding/hex"
 
-	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/service/kms"
-	"github.com/aws/aws-sdk-go/service/kms/kmsiface"
+	"github.com/aws/aws-sdk-go-v2/aws"
+	"github.com/aws/aws-sdk-go-v2/service/kms"
 )
 
 // AWSAEAD is an implementation of the AEAD interface which performs
@@ -30,7 +30,7 @@ import (
 // key URI.
 type AWSAEAD struct {
 	keyURI                string
-	kms                   kmsiface.KMSAPI
+	kms                   KMSAPI
 	encryptionContextName EncryptionContextName
 }
 
@@ -41,7 +41,7 @@ type AWSAEAD struct {
 //	aws-kms://arn:<partition>:kms:<region>:[<path>]
 //
 // See http://docs.aws.amazon.com/general/latest/gr/aws-arns-and-namespaces.html.
-func newAWSAEAD(keyURI string, kms kmsiface.KMSAPI, name EncryptionContextName) *AWSAEAD {
+func newAWSAEAD(keyURI string, kms KMSAPI, name EncryptionContextName) *AWSAEAD {
 	return &AWSAEAD{
 		keyURI:                keyURI,
 		kms:                   kms,
@@ -56,10 +56,10 @@ func (a *AWSAEAD) Encrypt(plaintext, associatedData []byte) ([]byte, error) {
 		Plaintext: plaintext,
 	}
 	if len(associatedData) > 0 {
-		ad := hex.EncodeToString(associatedData)
-		req.EncryptionContext = map[string]*string{a.encryptionContextName.String(): &ad}
+		req.EncryptionContext = map[string]string{a.encryptionContextName.String(): hex.EncodeToString(associatedData)}
 	}
-	resp, err := a.kms.Encrypt(req)
+	// AEAD interface does not pass ctx, https://github.com/tink-crypto/tink-go/issues/6
+	resp, err := a.kms.Encrypt(context.TODO(), req)
 	if err != nil {
 		return nil, err
 	}
@@ -73,10 +73,10 @@ func (a *AWSAEAD) Decrypt(ciphertext, associatedData []byte) ([]byte, error) {
 		CiphertextBlob: ciphertext,
 	}
 	if len(associatedData) > 0 {
-		ad := hex.EncodeToString(associatedData)
-		req.EncryptionContext = map[string]*string{a.encryptionContextName.String(): &ad}
+		req.EncryptionContext = map[string]string{a.encryptionContextName.String(): hex.EncodeToString(associatedData)}
 	}
-	resp, err := a.kms.Decrypt(req)
+	// AEAD interface does not pass ctx, https://github.com/tink-crypto/tink-go/issues/6
+	resp, err := a.kms.Decrypt(context.TODO(), req)
 	if err != nil {
 		return nil, err
 	}
