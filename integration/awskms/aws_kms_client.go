@@ -11,8 +11,6 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
-//
-////////////////////////////////////////////////////////////////////////////////
 
 package awskms
 
@@ -269,7 +267,7 @@ func (c *awsClient) Supported(keyURI string) bool {
 // GetAEAD returns an implementation of the AEAD interface which performs
 // cryptographic operations remotely via AWS KMS using keyURI.
 //
-// keyUri must be supported by this client and must have the following format:
+// keyURI must be supported by this client and must have the following format:
 //
 //	aws-kms://arn:<partition>:kms:<region>:<path>
 //
@@ -279,8 +277,8 @@ func (c *awsClient) GetAEAD(keyURI string) (tink.AEAD, error) {
 		return nil, fmt.Errorf("keyURI must start with prefix %s, but got %s", c.keyURIPrefix, keyURI)
 	}
 
-	uri := strings.TrimPrefix(keyURI, awsPrefix)
-	return newAWSAEAD(uri, c.kms, c.encryptionContextName), nil
+	keyID := strings.TrimPrefix(keyURI, awsPrefix)
+	return newAWSAEAD(keyID, c.kms, c.encryptionContextName), nil
 }
 
 func getKMS(uriPrefix string) (*kms.Client, error) {

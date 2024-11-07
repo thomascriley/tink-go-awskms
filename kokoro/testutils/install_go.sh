@@ -25,17 +25,24 @@
 #
 #  source ./kokoro/testutils/install_go.sh
 
-install_temp_go() {
-  local -r go_version="1.20.10"
+set -eo pipefail
 
-  local -r platform="$(uname | tr '[:upper:]' '[:lower:]')"
+readonly GO_VERSION="1.22.7"
+readonly GO_DARWIN_AMD64_SHA256="2c1b36bf4a21dabe3f23384c8228804c9af4c233de6250ec2e69249c25d15070"
+readonly GO_LINUX_AMD64_SHA256="810e4d9f3f2f03b2f11471a9c7a32302968fc09d51f666cecacedb1055f2f873"
+readonly PLATFORM="$(uname | tr '[:upper:]' '[:lower:]')"
+
+install_temp_go() {
   local go_platform
-  case "${platform}" in
-    'linux')
-      go_platform='linux-amd64'
+  local go_sha256
+  case "${PLATFORM}" in
+    "linux")
+      go_platform="linux-amd64"
+      go_sha256="${GO_LINUX_AMD64_SHA256}"
       ;;
-    'darwin')
-      go_platform='darwin-amd64'
+    "darwin")
+      go_platform="darwin-amd64"
+      go_sha256="${GO_DARWIN_AMD64_SHA256}"
       ;;
     *)
       echo "Unsupported platform, unable to install Go."
@@ -43,14 +50,16 @@ install_temp_go() {
       ;;
   esac
   readonly go_platform
+  readonly go_sha256
 
-  local -r go_archive="go${go_version}.${go_platform}.tar.gz"
+  local -r go_archive="go${GO_VERSION}.${go_platform}.tar.gz"
   local -r go_url="https://go.dev/dl/${go_archive}"
-
   local -r go_tmpdir=$(mktemp -dt tink-go.XXXXXX)
   (
+    set -x
     cd "${go_tmpdir}"
     curl -OLsS "${go_url}"
+    echo "${go_sha256} ${go_archive}" | sha256sum -c
     tar -xzf "${go_archive}"
   )
 

@@ -11,8 +11,6 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
-//
-////////////////////////////////////////////////////////////////////////////////
 
 package awskms
 
@@ -29,17 +27,25 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/kms"
 	"github.com/tink-crypto/tink-go/v2/core/registry"
 
-	"github.com/scorpionknifes/tink-go-awskms-v2/v2/integration/awskms/internal/fakeawskms"
+	"github.com/thomascriley/tink-go-awskms/v2/integration/awskms/internal/fakeawskms"
 )
 
-func TestNewClientWithOptions_URIPrefix(t *testing.T) {
+func testFilePath(t *testing.T, filename string) string {
+	t.Helper()
 	srcDir, ok := os.LookupEnv("TEST_SRCDIR")
-	if !ok {
-		t.Skip("TEST_SRCDIR not set")
+	if ok {
+		workspaceDir, ok := os.LookupEnv("TEST_WORKSPACE")
+		if !ok {
+			t.Fatal("TEST_WORKSPACE not found")
+		}
+		return filepath.Join(srcDir, workspaceDir, filename)
 	}
+	return filepath.Join("../..", filename)
+}
 
+func TestNewClientWithOptions_URIPrefix(t *testing.T) {
 	// Necessary for testing deprecated factory functions.
-	credFile := filepath.Join(srcDir, "tink_go_awskms_v2/testdata/aws/credentials.csv")
+	credFile := testFilePath(t, "testdata/aws/credentials.csv")
 	keyARN := "arn:aws:kms:us-east-2:235739564943:key/3ee50705-5a82-4f5b-9753-05c4f473922f"
 	fakekms, err := fakeawskms.New([]string{keyARN})
 	if err != nil {
@@ -116,6 +122,10 @@ func TestNewClientWithOptions_WithCredentialPath(t *testing.T) {
 	if !ok {
 		t.Skip("TEST_SRCDIR not set")
 	}
+	workspaceDir, ok := os.LookupEnv("TEST_WORKSPACE")
+	if !ok {
+		t.Skip("TEST_WORKSPACE not set")
+	}
 
 	uriPrefix := "aws-kms://arn:aws-us-gov:kms:us-gov-east-1:235739564943:key/"
 
@@ -126,17 +136,17 @@ func TestNewClientWithOptions_WithCredentialPath(t *testing.T) {
 	}{
 		{
 			name:     "valid CSV credentials file",
-			credFile: filepath.Join(srcDir, "tink_go_awskms_v2/testdata/aws/credentials.csv"),
+			credFile: filepath.Join(srcDir, workspaceDir, "testdata/aws/credentials.csv"),
 			valid:    true,
 		},
 		{
 			name:     "valid INI credentials file",
-			credFile: filepath.Join(srcDir, "tink_go_awskms_v2/testdata/aws/credentials.cred"),
+			credFile: filepath.Join(srcDir, workspaceDir, "testdata/aws/credentials.cred"),
 			valid:    true,
 		},
 		{
 			name:     "invalid credentials file",
-			credFile: filepath.Join(srcDir, "tink_go_awskms_v2/testdata/aws/access_keys_bad.csv"),
+			credFile: filepath.Join(srcDir, workspaceDir, "testdata/aws/access_keys_bad.csv"),
 			valid:    false,
 		},
 	}

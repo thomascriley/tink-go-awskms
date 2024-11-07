@@ -11,15 +11,12 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
-//
-////////////////////////////////////////////////////////////////////////////////
 
 package awskms_test
 
 import (
 	"bytes"
 	"context"
-	"flag"
 	"os"
 	"path/filepath"
 	"testing"
@@ -29,7 +26,7 @@ import (
 	"github.com/tink-crypto/tink-go/v2/aead"
 	"github.com/tink-crypto/tink-go/v2/tink"
 
-	"github.com/scorpionknifes/tink-go-awskms-v2/v2/integration/awskms"
+	"github.com/thomascriley/tink-go-awskms/v2/integration/awskms"
 )
 
 const (
@@ -39,23 +36,29 @@ const (
 	keyURI2     = "aws-kms://arn:aws:kms:us-east-2:235739564943:key/b3ca2efd-a8fb-47f2-b541-7e20f8c5cd11"
 )
 
-var (
-	credCSVFile = "tink_go_awskms_v2/testdata/aws/credentials.csv"
-	credINIFile = "tink_go_awskms_v2/testdata/aws/credentials.ini"
+const (
+	credCSVFile = "testdata/aws/credentials.csv"
+	credINIFile = "testdata/aws/credentials.ini"
 )
 
-func init() {
-	certPath := filepath.Join(os.Getenv("TEST_SRCDIR"), "tink_base/roots.pem")
-	flag.Set("cacerts", certPath)
-	os.Setenv("SSL_CERT_FILE", certPath)
+// Placeholder for internal initialization.
+
+func testFilePath(t *testing.T, filename string) string {
+	t.Helper()
+	srcDir, ok := os.LookupEnv("TEST_SRCDIR")
+	if ok {
+		workspaceDir, ok := os.LookupEnv("TEST_WORKSPACE")
+		if !ok {
+			t.Fatal("TEST_WORKSPACE not found")
+		}
+		return filepath.Join(srcDir, workspaceDir, filename)
+	}
+	return filepath.Join("../..", filename)
 }
 
 func TestNewClientWithCredentialsGetAEADEncryptDecrypt(t *testing.T) {
-	srcDir, ok := os.LookupEnv("TEST_SRCDIR")
-	if !ok {
-		t.Skip("TEST_SRCDIR not set")
-	}
-	client, err := awskms.NewClientWithOptions(context.Background(), keyURI, awskms.WithCredentialPath(filepath.Join(srcDir, credCSVFile)))
+	credFilePath := testFilePath(t, credCSVFile)
+	client, err := awskms.NewClientWithOptions(context.Background(), keyURI, awskms.WithCredentialPath(credFilePath))
 	if err != nil {
 		t.Fatalf("error setting up AWS client: %v", err)
 	}
@@ -85,11 +88,8 @@ func TestNewClientWithCredentialsGetAEADEncryptDecrypt(t *testing.T) {
 }
 
 func TestEmptyAssociatedDataEncryptDecrypt(t *testing.T) {
-	srcDir, ok := os.LookupEnv("TEST_SRCDIR")
-	if !ok {
-		t.Skip("TEST_SRCDIR not set")
-	}
-	client, err := awskms.NewClientWithOptions(context.Background(), keyURI, awskms.WithCredentialPath(filepath.Join(srcDir, credCSVFile)))
+	credFilePath := testFilePath(t, credCSVFile)
+	client, err := awskms.NewClientWithOptions(context.Background(), keyURI, awskms.WithCredentialPath(credFilePath))
 	if err != nil {
 		t.Fatalf("error setting up AWS client: %v", err)
 	}
@@ -121,12 +121,8 @@ func TestEmptyAssociatedDataEncryptDecrypt(t *testing.T) {
 }
 
 func TestKeyCommitment(t *testing.T) {
-	srcDir, ok := os.LookupEnv("TEST_SRCDIR")
-	if !ok {
-		t.Skip("TEST_SRCDIR not set")
-	}
-
-	client, err := awskms.NewClientWithOptions(context.Background(), keyPrefix, awskms.WithCredentialPath(filepath.Join(srcDir, credCSVFile)))
+	credFilePath := testFilePath(t, credCSVFile)
+	client, err := awskms.NewClientWithOptions(context.Background(), keyPrefix, awskms.WithCredentialPath(credFilePath))
 	if err != nil {
 		t.Fatalf("error setting up AWS client: %v", err)
 	}
@@ -165,15 +161,10 @@ func TestKeyCommitment(t *testing.T) {
 }
 
 func TestKMSEnvelopeAEADEncryptAndDecrypt(t *testing.T) {
-	srcDir, ok := os.LookupEnv("TEST_SRCDIR")
-	if !ok {
-		t.Skip("TEST_SRCDIR not set")
-	}
-
 	for _, credFile := range []string{credCSVFile, credINIFile} {
-		credPath := filepath.Join(srcDir, credFile)
+		credFilePath := testFilePath(t, credFile)
+		client, err := awskms.NewClientWithOptions(context.Background(), keyURI, awskms.WithCredentialPath(credFilePath))
 
-		client, err := awskms.NewClientWithOptions(context.Background(), keyURI, awskms.WithCredentialPath(credPath))
 		if err != nil {
 			t.Fatalf("awskms.NewClientWithOptions() err = %q, want nil", err)
 		}
@@ -185,9 +176,6 @@ func TestKMSEnvelopeAEADEncryptAndDecrypt(t *testing.T) {
 
 		dekTemplate := aead.AES128CTRHMACSHA256KeyTemplate()
 		a := aead.NewKMSEnvelopeAEAD2(dekTemplate, kekAEAD)
-		if err != nil {
-			t.Fatalf("aead.NewKMSEnvelopeAEAD2(dekTemplate, kekAEAD) err = %q, want nil", err)
-		}
 		plaintext := []byte("plaintext")
 		for _, associatedData := range [][]byte{nil, []byte("associated data")} {
 			ciphertext, err := a.Encrypt(plaintext, associatedData)
