@@ -12,21 +12,17 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package awskms_test
+package awskms
 
 import (
 	"bytes"
 	"context"
-	"os"
-	"path/filepath"
 	"testing"
 
 	// context is used to cancel outstanding requests
 
 	"github.com/tink-crypto/tink-go/v2/aead"
 	"github.com/tink-crypto/tink-go/v2/tink"
-
-	"github.com/thomascriley/tink-go-awskms/v2/integration/awskms"
 )
 
 const (
@@ -41,24 +37,9 @@ const (
 	credINIFile = "testdata/aws/credentials.ini"
 )
 
-// Placeholder for internal initialization.
-
-func testFilePath(t *testing.T, filename string) string {
-	t.Helper()
-	srcDir, ok := os.LookupEnv("TEST_SRCDIR")
-	if ok {
-		workspaceDir, ok := os.LookupEnv("TEST_WORKSPACE")
-		if !ok {
-			t.Fatal("TEST_WORKSPACE not found")
-		}
-		return filepath.Join(srcDir, workspaceDir, filename)
-	}
-	return filepath.Join("../..", filename)
-}
-
 func TestNewClientWithCredentialsGetAEADEncryptDecrypt(t *testing.T) {
 	credFilePath := testFilePath(t, credCSVFile)
-	client, err := awskms.NewClientWithOptions(context.Background(), keyURI, awskms.WithCredentialPath(credFilePath))
+	client, err := NewClientWithOptions(context.Background(), keyURI, WithCredentialPath(credFilePath))
 	if err != nil {
 		t.Fatalf("error setting up AWS client: %v", err)
 	}
@@ -89,7 +70,7 @@ func TestNewClientWithCredentialsGetAEADEncryptDecrypt(t *testing.T) {
 
 func TestEmptyAssociatedDataEncryptDecrypt(t *testing.T) {
 	credFilePath := testFilePath(t, credCSVFile)
-	client, err := awskms.NewClientWithOptions(context.Background(), keyURI, awskms.WithCredentialPath(credFilePath))
+	client, err := NewClientWithOptions(context.Background(), keyURI, WithCredentialPath(credFilePath))
 	if err != nil {
 		t.Fatalf("error setting up AWS client: %v", err)
 	}
@@ -122,7 +103,7 @@ func TestEmptyAssociatedDataEncryptDecrypt(t *testing.T) {
 
 func TestKeyCommitment(t *testing.T) {
 	credFilePath := testFilePath(t, credCSVFile)
-	client, err := awskms.NewClientWithOptions(context.Background(), keyPrefix, awskms.WithCredentialPath(credFilePath))
+	client, err := NewClientWithOptions(context.Background(), keyPrefix, WithCredentialPath(credFilePath))
 	if err != nil {
 		t.Fatalf("error setting up AWS client: %v", err)
 	}
@@ -163,10 +144,10 @@ func TestKeyCommitment(t *testing.T) {
 func TestKMSEnvelopeAEADEncryptAndDecrypt(t *testing.T) {
 	for _, credFile := range []string{credCSVFile, credINIFile} {
 		credFilePath := testFilePath(t, credFile)
-		client, err := awskms.NewClientWithOptions(context.Background(), keyURI, awskms.WithCredentialPath(credFilePath))
+		client, err := NewClientWithOptions(context.Background(), keyURI, WithCredentialPath(credFilePath))
 
 		if err != nil {
-			t.Fatalf("awskms.NewClientWithOptions() err = %q, want nil", err)
+			t.Fatalf("NewClientWithOptions() err = %q, want nil", err)
 		}
 
 		kekAEAD, err := client.GetAEAD(keyURI)
