@@ -7,6 +7,7 @@ require (
 	github.com/aws/aws-sdk-go-v2/config v1.28.2
 	github.com/aws/aws-sdk-go-v2/credentials v1.17.43
 	github.com/aws/aws-sdk-go-v2/service/kms v1.37.4
+	github.com/tink-crypto/tink-go-awskms v0.0.0-00010101000000-000000000000
 	github.com/tink-crypto/tink-go/v2 v2.2.0
 )
 
@@ -25,3 +26,5 @@ require (
 	golang.org/x/sys v0.26.0 // indirect
 	google.golang.org/protobuf v1.35.1 // indirect
 )
+
+replace github.com/tink-crypto/tink-go-awskms => github.com/thomascriley/tink-go-awskms/v2 v2.0.0

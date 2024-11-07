@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package fakeawskms
+package awskms
 
 import (
 	"bytes"
@@ -30,9 +30,9 @@ const (
 )
 
 func TestEncyptDecryptWithValidKeyId(t *testing.T) {
-	fakeKMS, err := New([]string{validKeyID})
+	fakeKMS, err := NewFake([]string{validKeyID})
 	if err != nil {
-		t.Fatalf("New() err = %s, want nil", err)
+		t.Fatalf("NewFake() err = %s, want nil", err)
 	}
 
 	ctx := context.Background()
@@ -81,9 +81,9 @@ func TestEncyptDecryptWithValidKeyId(t *testing.T) {
 }
 
 func TestEncyptWithUnknownKeyID(t *testing.T) {
-	fakeKMS, err := New([]string{validKeyID})
+	fakeKMS, err := NewFake([]string{validKeyID})
 	if err != nil {
-		t.Fatalf("New() err = %s, want nil", err)
+		t.Fatalf("NewFake() err = %s, want nil", err)
 	}
 
 	ctx := context.Background()
@@ -102,9 +102,9 @@ func TestEncyptWithUnknownKeyID(t *testing.T) {
 }
 
 func TestDecryptWithInvalidCiphertext(t *testing.T) {
-	fakeKMS, err := New([]string{validKeyID})
+	fakeKMS, err := NewFake([]string{validKeyID})
 	if err != nil {
-		t.Fatalf("New() err = %s, want nil", err)
+		t.Fatalf("NewFake() err = %s, want nil", err)
 	}
 
 	ctx := context.Background()
@@ -122,9 +122,9 @@ func TestDecryptWithInvalidCiphertext(t *testing.T) {
 }
 
 func TestDecryptWithUnknownKeyId(t *testing.T) {
-	fakeKMS, err := New([]string{validKeyID})
+	fakeKMS, err := NewFake([]string{validKeyID})
 	if err != nil {
-		t.Fatalf("New() err = %s, want nil", err)
+		t.Fatalf("NewFake() err = %s, want nil", err)
 	}
 
 	ctx := context.Background()
@@ -143,9 +143,9 @@ func TestDecryptWithUnknownKeyId(t *testing.T) {
 }
 
 func TestDecryptWithWrongKeyId(t *testing.T) {
-	fakeKMS, err := New([]string{validKeyID, validKeyID2})
+	fakeKMS, err := NewFake([]string{validKeyID, validKeyID2})
 	if err != nil {
-		t.Fatalf("New() err = %s, want nil", err)
+		t.Fatalf("NewFake() err = %s, want nil", err)
 	}
 
 	ctx := context.Background()
@@ -179,9 +179,9 @@ func TestDecryptWithoutKeyId(t *testing.T) {
 	// setting the keyId in DecryptInput is not required, see
 	// https://pkg.go.dev/github.com/aws/aws-sdk-go-v2/service/kms#DecryptInput
 
-	fakeKMS, err := New([]string{validKeyID, validKeyID2})
+	fakeKMS, err := NewFake([]string{validKeyID, validKeyID2})
 	if err != nil {
-		t.Fatalf("New() err = %s, want nil", err)
+		t.Fatalf("NewFake() err = %s, want nil", err)
 	}
 
 	ctx := context.Background()

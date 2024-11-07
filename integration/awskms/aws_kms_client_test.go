@@ -26,8 +26,6 @@ import (
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/kms"
 	"github.com/tink-crypto/tink-go/v2/core/registry"
-
-	"github.com/thomascriley/tink-go-awskms/v2/integration/awskms/internal/fakeawskms"
 )
 
 func testFilePath(t *testing.T, filename string) string {
@@ -47,7 +45,7 @@ func TestNewClientWithOptions_URIPrefix(t *testing.T) {
 	// Necessary for testing deprecated factory functions.
 	credFile := testFilePath(t, "testdata/aws/credentials.csv")
 	keyARN := "arn:aws:kms:us-east-2:235739564943:key/3ee50705-5a82-4f5b-9753-05c4f473922f"
-	fakekms, err := fakeawskms.New([]string{keyARN})
+	fakekms, err := NewFake([]string{keyARN})
 	if err != nil {
 		t.Fatalf("fakeawskms.New() failed: %v", err)
 	}
@@ -175,7 +173,7 @@ func TestNewClientWithOptions_WithCredentialPath(t *testing.T) {
 
 func TestNewClientWithOptions_RepeatedWithKMSFails(t *testing.T) {
 	keyARN := "arn:aws:kms:us-east-2:235739564943:key/3ee50705-5a82-4f5b-9753-05c4f473922f"
-	fakekms, err := fakeawskms.New([]string{keyARN})
+	fakekms, err := NewFake([]string{keyARN})
 	if err != nil {
 		t.Fatalf("fakekms.New() failed: %v", err)
 	}
@@ -230,7 +228,7 @@ func TestGetAEADSupportedURI(t *testing.T) {
 func TestGetAEADEncryptDecrypt(t *testing.T) {
 	keyARN := "arn:aws:kms:us-east-2:235739564943:key/3ee50705-5a82-4f5b-9753-05c4f473922f"
 	keyURI := "aws-kms://arn:aws:kms:us-east-2:235739564943:key/3ee50705-5a82-4f5b-9753-05c4f473922f"
-	fakekms, err := fakeawskms.New([]string{keyARN})
+	fakekms, err := NewFake([]string{keyARN})
 	if err != nil {
 		t.Fatalf("fakekms.New() failed: %v", err)
 	}
@@ -273,9 +271,9 @@ func TestGetAEADEncryptDecrypt(t *testing.T) {
 func TestUsesAdditionalDataAsContextName(t *testing.T) {
 	keyARN := "arn:aws:kms:us-east-2:235739564943:key/3ee50705-5a82-4f5b-9753-05c4f473922f"
 	keyURI := "aws-kms://arn:aws:kms:us-east-2:235739564943:key/3ee50705-5a82-4f5b-9753-05c4f473922f"
-	fakekms, err := fakeawskms.New([]string{keyARN})
+	fakekms, err := NewFake([]string{keyARN})
 	if err != nil {
-		t.Fatalf("fakeawskms.New() failed: %v", err)
+		t.Fatalf("NewFake() failed: %v", err)
 	}
 
 	client, err := NewClientWithKMS("aws-kms://", fakekms)
@@ -317,9 +315,9 @@ func TestUsesAdditionalDataAsContextName(t *testing.T) {
 func TestEncryptionContextName(t *testing.T) {
 	keyARN := "arn:aws:kms:us-east-2:235739564943:key/3ee50705-5a82-4f5b-9753-05c4f473922f"
 	keyURI := "aws-kms://arn:aws:kms:us-east-2:235739564943:key/3ee50705-5a82-4f5b-9753-05c4f473922f"
-	fakekms, err := fakeawskms.New([]string{keyARN})
+	fakekms, err := NewFake([]string{keyARN})
 	if err != nil {
-		t.Fatalf("fakeawskms.New() failed: %v", err)
+		t.Fatalf("NewFake() failed: %v", err)
 	}
 
 	tests := []struct {
@@ -379,9 +377,9 @@ func TestEncryptionContextName(t *testing.T) {
 func TestEncryptionContextName_defaultEncryptionContextName(t *testing.T) {
 	keyARN := "arn:aws:kms:us-east-2:235739564943:key/3ee50705-5a82-4f5b-9753-05c4f473922f"
 	keyURI := "aws-kms://arn:aws:kms:us-east-2:235739564943:key/3ee50705-5a82-4f5b-9753-05c4f473922f"
-	fakekms, err := fakeawskms.New([]string{keyARN})
+	fakekms, err := NewFake([]string{keyARN})
 	if err != nil {
-		t.Fatalf("fakeawskms.New() failed: %v", err)
+		t.Fatalf("NewFake() failed: %v", err)
 	}
 
 	tests := []struct {

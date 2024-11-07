@@ -13,7 +13,7 @@
 // limitations under the License.
 
 // Package fakeawskms provides a partial fake implementation of kmsiface.KMSAPI.
-package fakeawskms
+package awskms
 
 import (
 	"bytes"
@@ -27,11 +27,6 @@ import (
 	"github.com/tink-crypto/tink-go/v2/keyset"
 	"github.com/tink-crypto/tink-go/v2/tink"
 )
-
-type KMSAPI interface {
-	Decrypt(ctx context.Context, params *kms.DecryptInput, optFns ...func(*kms.Options)) (*kms.DecryptOutput, error)
-	Encrypt(ctx context.Context, params *kms.EncryptInput, optFns ...func(*kms.Options)) (*kms.EncryptOutput, error)
-}
 
 type fakeAWSKMS struct {
 	KMSAPI
@@ -59,7 +54,7 @@ func serializeContext(context map[string]string) []byte {
 }
 
 // New returns a new fake AWS KMS API.
-func New(validKeyIDs []string) (KMSAPI, error) {
+func NewFake(validKeyIDs []string) (KMSAPI, error) {
 	aeads := make(map[string]tink.AEAD)
 	for _, keyID := range validKeyIDs {
 		handle, err := keyset.NewHandle(aead.AES256GCMKeyTemplate())
